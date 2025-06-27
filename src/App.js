@@ -1,25 +1,42 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, useParams } from 'react-router-dom';
+import UrlShortenerForm from './components/UrlShortenerForm';
+import Stats from './pages/Stats';
 
-function App() {
+const RedirectPage = () => {
+  const { code } = useParams();
+
+  const stored = JSON.parse(localStorage.getItem('urlData') || '{}');
+  const item = stored[code];
+
+  if (item) {
+    const clickLogs = JSON.parse(localStorage.getItem('clickLogs') || '{}');
+    if (!clickLogs[code]) clickLogs[code] = [];
+
+    clickLogs[code].push({
+      time: new Date().toISOString(),
+      source: navigator.userAgent,
+      geo: 'India (Mock)'
+    });
+
+    localStorage.setItem('clickLogs', JSON.stringify(clickLogs));
+
+    window.location.href = item.original;
+  }
+
+  return <p>Redirecting...</p>;
+};
+
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<UrlShortenerForm />} />
+        <Route path="/stats" element={<Stats />} />
+        <Route path="/:code" element={<RedirectPage />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;
